@@ -1,11 +1,9 @@
 from setuptools import setup, find_packages
 
-import duxlib
-
 
 setup(
     name = 'duxlib',
-    version = duxlib.__version__,
+    version = '0.1.2',
     author = 'Daniel Duckworth',
     author_email = 'duckworthd@gmail.com',
     description = "Extensions to Python libraries",
