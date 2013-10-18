@@ -79,9 +79,13 @@ class JsonBottle(object):
     """
 
     def decorator_(f):
-      # need at least these method types. Add to list of already passed
-      method = ['GET', 'POST', 'OPTIONS'] + kwargs.get("method", [])
-      kwargs['method'] = list(set(method))
+      # HTTP methods by which this route can be accessed. CORS requires
+      # 'OPTIONS'; otherwise, assume it's a GET/POST request.
+      if 'method' in kwargs:
+        method = list(set(kwargs['method'] + ['OPTIONS']))
+      else:
+        method = ['GET', 'POST', 'OPTIONS']
+      kwargs['method'] = method
 
       f = self.json_output(f)
       f = self.json_input(f)
