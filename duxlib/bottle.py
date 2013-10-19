@@ -90,8 +90,37 @@ class JsonBottle(object):
       f = self.json_output(f)
       f = self.json_input(f)
       f = self.cors(f)
+      f = self.on_exception(Exception)(f)
       f = self.route(*args, **kwargs)(f)
       return f
+    return decorator_
+
+  def on_exception(self, exceptions=Exception, callback=None):
+    """Catch exceptions thrown by decorated function and respond with a callback
+
+    Parameters
+    ----------
+    exceptions : tuple or Exception
+        exceptions to catch
+    callback : None or function
+        Callback applied when an exception is thrown. If callback is None, a
+        dict with the exception's details is returned; otherwise, the
+        callback's output is returned.
+    """
+
+    def decorator_(f):
+      def decorator(*args_, **kwargs_):
+        try:
+          return f(*args_, **kwargs_)
+        except exceptions as e:
+          if callback is None:
+            return {
+                "status"    : "exception",
+                "exception" : e.__class__.__name__ + ": " + str(e)
+              }
+          else:
+            return callback(e)
+      return decorator
     return decorator_
 
 
