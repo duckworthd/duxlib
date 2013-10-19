@@ -3,7 +3,7 @@ from setuptools import setup, find_packages
 
 setup(
     name = 'duxlib',
-    version = '0.1.4',
+    version = '0.1.3',
     author = 'Daniel Duckworth',
     author_email = 'duckworthd@gmail.com',
     description = "Extensions to Python libraries",

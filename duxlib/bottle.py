@@ -152,10 +152,11 @@ def json_args(r):
   kwargs : dict
       collected keyword arguments from request
   """
-  if r.body:
+  r.body.seek(0)
+  content = r.body.read()
+  if content:
     # body is assumed to be JSON-encoded content
-    r.body.seek(0)
-    return json.loads(r.body.read())
+    return json.loads(content)
   elif r.method.upper() == "GET":
     # GET parameters might be specified
     return dict(r.params)
