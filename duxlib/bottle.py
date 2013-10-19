@@ -152,22 +152,16 @@ def json_args(r):
   kwargs : dict
       collected keyword arguments from request
   """
-  # from POSTed content
-  if r.json is not None:
-    return r.json
+  if r.body:
+    # body is assumed to be JSON-encoded content
+    r.body.seek(0)
+    return json.loads(r.body.read())
+  elif r.method.upper() == "GET":
+    # GET parameters might be specified
+    return dict(r.params)
   else:
-    # from body (this happens if the "Content-Type" header isn't set to
-    # "application/json".
-    try:
-      r.body.seek(0)
-      return json.loads(r.body.read())
-    except ValueError as e:
-      if r.method.upper() == "GET":
-        # from params dict
-        return dict(r.params)
-      else:
-        # this isn't a GET call; ignore GET parameters.
-        raise e
+    # no parameters here
+    return {}
 
 
 def cors_headers(r):
