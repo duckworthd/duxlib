@@ -2,6 +2,7 @@ from __future__ import absolute_import
 
 import json
 
+import bottle
 from bottle import request, response
 
 from .collections import merge
@@ -44,7 +45,11 @@ class JsonBottle(object):
     """Function parses input from JSON body or GET parameters"""
     def decorator(*args, **kwargs):
       # get args determined by JSON input
-      kwargs.update(json_args(request))
+      try:
+        kwargs.update(json_args(request))
+      except Exception as e:
+        request.body.seek(0)
+        raise JsonInputException("Unable to parse JSON arguments: {}".format(request.body.read()))
       return decorated(*args, **kwargs)
     return decorator
 
@@ -56,9 +61,11 @@ class JsonBottle(object):
 
       # return it as a string
       response.content_type = "application/json"
-      response.body = json.dumps(output)
-
-      return response
+      try:
+        response.body = json.dumps(output)
+        return response
+      except (ValueError, TypeError) as e:
+        raise JsonOutputException("Unable to encode output as JSON: {}".format(output))
 
     return decorator
 
@@ -149,13 +156,18 @@ def json_args(r):
   if r.json is not None:
     return r.json
   else:
-    # from body
+    # from body (this happens if the "Content-Type" header isn't set to
+    # "application/json".
     try:
       r.body.seek(0)
       return json.loads(r.body.read())
-    except ValueError:
-      # from params dict
-      return dict(r.params)
+    except ValueError as e:
+      if r.method.upper() == "GET":
+        # from params dict
+        return dict(r.params)
+      else:
+        # this isn't a GET call; ignore GET parameters.
+        raise e
 
 
 def cors_headers(r):
@@ -186,3 +198,11 @@ def cors_headers(r):
       'Origin, Accept, Content-Type, X-Requested-With'
   )
   return headers
+
+
+class JsonInputException(bottle.BottleException):
+  pass
+
+
+class JsonOutputException(bottle.BottleException):
+  pass
