@@ -26,7 +26,6 @@ class JsonBottle(object):
     ... def method(name):
     ...   return "Hello, {}".format(name)
     """
-
     def decorator(*args, **kwargs):
       # update headers with CORS junk
       response.headers.update(cors_headers(request))
@@ -40,7 +39,6 @@ class JsonBottle(object):
         return decorated(*args, **kwargs)
 
     return decorator
-
   def json_input(self, decorated):
     """Function parses input from JSON body or GET parameters"""
     def decorator(*args, **kwargs):
