@@ -19,3 +19,12 @@ def test_inner():
     ]
   for (p, lower, upper) in examples:
     yield (_check_inner, arr[inner(arr, p)], lower, upper)
+
+  arr = [1,2,3,4,5]
+  examples = [
+      (1.0, 1, 5),
+      (0.5, 2, 4),
+      (0.25, 2.5, 3.5),
+  ]
+  for (p, lower, upper) in examples:
+    yield (_check_inner, np.asarray(arr)[inner(arr, p)], lower, upper)
