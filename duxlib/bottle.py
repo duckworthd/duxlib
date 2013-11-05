@@ -1,5 +1,7 @@
 from __future__ import absolute_import
 
+from StringIO import StringIO
+import gzip
 import json
 
 import bottle
@@ -7,6 +9,7 @@ from bottle import request, response
 
 from .collections import merge
 from .json import escape
+from .gzip import encode as gzip_encode
 
 
 class JsonBottle(object):
@@ -17,12 +20,46 @@ class JsonBottle(object):
   def __getattr__(self, key):
     return getattr(self.app, key)
 
+  def gzip(self, decorated):
+    """Enable gzip compression on requests
+
+    >>> app = SuperBottle(bottle.Bottle())
+    >>> @app.get("/hello")
+    ... @app.gzip
+    ... def method(name):
+    ...   response = bottle.response
+    ...   response.body = "Hello, {}".format(name)
+    ...   return response   # must return response object!
+    """
+
+    def decorator(*args, **kwargs):
+      # assumes that decorated function returns bottle.response or a string
+      response = decorated(*args, **kwargs)
+      if not isinstance(response, bottle.Response):
+        if isinstance(response, basestring):
+          bottle.response.body = response
+          response = bottle.response
+        else:
+          raise bottle.BottleException(
+              "SuperBottle.gzip expects decorated"
+              "function to return a bottle.Response object of a string"
+          )
+
+      if 'Accept-Encoding' in request.headers:
+        encodings = [s.strip().lower() for s in request.headers['Accept-Encoding'].split(",")]
+        if 'gzip' in encodings:
+          response.body = gzip_encode(response.body)
+          response.headers['Content-Encoding'] = 'gzip'
+
+      return response
+    return decorator
+
   def cors(self, decorated):
     """Attach CORS (Cross Origin Resource Headers) headers to enable cross-site AJAX
 
     >>> app = SuperBottle(bottle.Bottle())
-    >>> @app.cors
-    ... @app.route("/hello", method=["OPTIONS", "GET"])   # OPTIONS is necessary here!
+    >>> @app.route("/hello", method=["OPTIONS", "GET"])   # OPTIONS is necessary here!
+    ... @app.cors
     ... def method(name):
     ...   return "Hello, {}".format(name)
     """
@@ -93,6 +130,7 @@ class JsonBottle(object):
       kwargs['method'] = method
 
       f = self.json_output(f)
+      f = self.gzip(f)
       f = self.json_input(f)
       f = self.cors(f)
       f = self.on_exception(Exception)(f)
