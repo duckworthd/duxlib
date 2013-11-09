@@ -1,5 +1,7 @@
 from __future__ import absolute_import
 
+from StringIO import StringIO
+
 import pandas as pd
 
 def to_records(df):
@@ -16,6 +18,14 @@ def to_records(df):
   """
   for _, row in df.iterrows():
     yield dict(row)
+
+
+def to_csv(df, **kwargs):
+  """Return CSV as a string"""
+
+  sio = StringIO()
+  df.to_csv(sio, **kwargs)
+  return sio.getvalue()
 
 
 def count(key="count"):
