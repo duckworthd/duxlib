@@ -5,7 +5,7 @@ import gzip
 import json
 
 import bottle
-from bottle import request, response
+from bottle import request, response, Response
 
 from .collections import merge
 from .json import escape
@@ -91,8 +91,14 @@ class JsonBottle(object):
   def json_output(self, decorated):
     """Function outputs JSON"""
     def decorator(*args, **kwargs):
+      output = decorated(*args, **kwargs)
+
+      # guard in case someone has already created a response
+      if isinstance(output, Response):
+        return output
+
       # escape output of function
-      output = escape(decorated(*args, **kwargs))
+      output = escape(output)
 
       # return it as a string
       response.content_type = "application/json"
@@ -157,6 +163,7 @@ class JsonBottle(object):
           return f(*args_, **kwargs_)
         except exceptions as e:
           if callback is None:
+            response.status = 500
             return {
                 "status"    : "exception",
                 "exception" : e.__class__.__name__ + ": " + str(e)
