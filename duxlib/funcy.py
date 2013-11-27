@@ -1,5 +1,7 @@
 from __future__ import absolute_import
 
+import itertools
+
 
 class DuxlibException(Exception):
   pass
@@ -19,3 +21,30 @@ def and_then(*args):
     return result
 
   return decorated
+
+
+def combinations(d):
+  """
+  Cartesian product of values in a dict
+
+  {
+    "a": [1,2],
+    "b": [2,3]
+  }
+
+  becomes
+
+  [
+    {"a": 1, "b": 2},
+    {"a": 1, "b": 3},
+    {"a": 2, "b": 2},
+    {"a": 2, "b": 3},
+  ]
+  """
+  if len(d) > 0:
+    keys, values = zip(*d.items())
+    return [
+      dict(zip(keys, v)) for v in itertools.product(*values)
+    ]
+  else:
+    return []
