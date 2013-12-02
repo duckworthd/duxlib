@@ -3,6 +3,7 @@ from __future__ import absolute_import
 from StringIO import StringIO
 import gzip
 import json
+import traceback
 
 import bottle
 from bottle import request, response, Response
@@ -162,6 +163,7 @@ class JsonBottle(object):
         try:
           return f(*args_, **kwargs_)
         except exceptions as e:
+          traceback.print_exc()
           if callback is None:
             response.status = 500
             return {
