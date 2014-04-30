@@ -41,7 +41,7 @@ class CaseClass(object):
     return u"{}({})".format(name, ", ".join(map(unicode, values)))
 
   def __str__(self):
-    return str(self.__unicode__)
+    return str(self.__unicode__())
 
   def __repr__(self):
     return self.__str__()

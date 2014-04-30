@@ -26,6 +26,10 @@ class TestCaseClass(unittest.TestCase):
     point = Point(1, 2)
     self.assertEqual("Point(1, 2)", unicode(point))
 
+  def test_str(self):
+    point = Point(1, 2)
+    self.assertEqual("Point(1, 2)", str(point))
+
   def test_eq(self):
     point1 = Point(1,2)
     point2 = Point(1,2)
